@@ -45,7 +45,11 @@ var lookUpAnEntry = function() {
 };
 
 var addNewEntry = function() {
-    var entry = '\n';
+    var entry = '';
+    let options = {
+        path: url,
+        method: 'POST',
+    }
     rlQuestion('First Name: ')
     .then(function(firstName) {
         entry += `${firstName}`
@@ -57,10 +61,14 @@ var addNewEntry = function() {
     })
     .then(function(phoneNumber) {
         entry += ` ${phoneNumber}`
-        return appendFile(phoneBook, entry)
+        return (JSON.stringify(entry))
     })
-    .then(function() {
-        console.log('Entry Saved')
+    .then(function(entry) {
+        request.post(url, entry, (error, response, body) => {
+            if (!error && response.statusCode == 200) {
+                console.log(body)
+            }
+        });
     })
     .then(function() {
         initiatePhonebook();
