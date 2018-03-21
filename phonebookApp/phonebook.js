@@ -45,63 +45,42 @@ var lookUpAnEntry = function() {
 };
 
 var addNewEntry = function() {
-    var entry = '';
-    let options = {
-        path: url,
-        method: 'POST',
-    }
+    var entry = {first: '', last: '', Number: ''};
     rlQuestion('First Name: ')
     .then(function(firstName) {
-        entry += `${firstName}`
+        entry.first = firstName;
         return rlQuestion('Last Name: ')
     })
     .then(function(lastName) {
-        entry += ` ${lastName}`
+        entry.last = lastName;
         return rlQuestion('Phone Number: ')
     })
     .then(function(phoneNumber) {
-        entry += ` ${phoneNumber}`
+        entry.Number = phoneNumber;
         return (JSON.stringify(entry))
     })
     .then(function(entry) {
-        request.post(url, entry, (error, response, body) => {
-            if (!error && response.statusCode == 200) {
-                console.log(body)
-            }
-        });
+        request.post({
+            headers: {'content-type' : 'application/json'},
+            url: url,
+            body: entry
+          }, function(error, response, body){
+            console.log(body);
+            initiatePhonebook()
+          });
     })
-    .then(function() {
-        initiatePhonebook();
-    })
-}   
+};   
 
 var deleteAnEntry = function() {
-    var phoneList;
-    readFile(phoneBook)
-    .then(function(data) {
-        var stringData = data.toString(); 
-        phoneList = stringData.split("\n")
-        return phoneList;
-    })
-    .then(function() {
-        return rlQuestion('Name: ')
-    }) 
-    .then(function(name){
-        phoneList.forEach(function(entry, i) {
-            if (entry.includes(name)) {
-                phoneList.splice(i, 1);
-                console.log('Entry Deleted')
-            }  
-    })
-        return writeFile(phoneBook, '')
-    })
-    .then(function() {
-        phoneList.forEach(function (entry) {
-            appendFile('phonebook.txt', (entry + '\n'))
-        })
-    })
-    .then(function(){
-        initiatePhonebook();
+    rlQuestion('ID: ')
+    .then(function(id) {
+        request.delete({
+            headers: {'content-type' : 'application/json'},
+            url: url + `/${id}`
+          }, function(error, response, body){
+            console.log(body);
+            initiatePhonebook()
+          });
     })
 };
 
