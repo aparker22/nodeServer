@@ -1,4 +1,5 @@
-let http = require ('http')
+let http = require('http');
+let fs = require('fs');
 
 let contacts = [
     {"first":"Ashley","last":"Parker","Number":"904","id":1},
@@ -72,6 +73,28 @@ let deleteContact = (request, response) => {
     });
 };
 
+let serveIndex = (request, response) => {
+    if (request.url === '/') {
+        fs.readFile(`static/index.html`, (err, data) => {
+            if (err) {
+                response.end('404, File Not Found')
+            } else {
+                response.end(data);
+            }
+        })
+    };
+};
+
+let serveFile = (request, response) => {
+    fs.readFile(`static/${request.url}`, (err, data) => {
+        if (err) {
+            response.end('404, File Not Found')
+        } else {
+            response.end(data);
+        }
+    })
+};
+
 let findContactID = (url) => {
     var id = (routes[0].path).exec(url)[1];
     return parseInt(id, 10)
@@ -99,7 +122,9 @@ let routes = [
     { method: 'PUT', path: /^\/contacts\/([0-9]+)\/?/, handler: updateContact},
     { method: 'DELETE', path: /^\/contacts\/([0-9]+)\/?/, handler: deleteContact},
     { method: 'GET', path: /^\/contacts\/?$/, handler: getContacts},
-    { method: 'POST', path: /^\/contacts\/?$/, handler: postContact}
+    { method: 'POST', path: /^\/contacts\/?$/, handler: postContact},
+    { method: 'GET', path: /^\/$/, handler: serveIndex },
+    { method: 'GET', path: /^\/[0-9a-zA-Z -.]+\.[0-9a-zA-Z -.]+/, handler: serveFile }
 ];
 
 let server = http.createServer( (request, response) => {
