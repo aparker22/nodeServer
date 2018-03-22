@@ -2,10 +2,10 @@ let http = require('http');
 let fs = require('fs');
 
 let contacts = [
-    {"first":"Ashley","last":"Parker","Number":"904","id":1},
-    {"first":"Ava","last":"Parker","Number":"912","id":2},
-    {"first":"Brandon","last":"Parker","Number":"770","id":3},
-    {"first":"Calli","last":"Parker","Number":"428","id":4}
+    {"first":"Ashley","last":"Parker","number":"123-456-7890","id":1},
+    {"first":"Ava","last":"Parker","number":"123-456-7890","id":2},
+    {"first":"Brandon","last":"Parker","number":"123-456-7890","id":3},
+    {"first":"Calli","last":"Parker","number":"123-456-7890","id":4}
 ];
 
 let contactID = contacts.length;

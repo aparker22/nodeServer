@@ -45,7 +45,7 @@ var lookUpAnEntry = function() {
 };
 
 var addNewEntry = function() {
-    var entry = {first: '', last: '', Number: ''};
+    var entry = {first: '', last: '', number: ''};
     rlQuestion('First Name: ')
     .then(function(firstName) {
         entry.first = firstName;
@@ -56,7 +56,7 @@ var addNewEntry = function() {
         return rlQuestion('Phone Number: ')
     })
     .then(function(phoneNumber) {
-        entry.Number = phoneNumber;
+        entry.number = phoneNumber;
         return (JSON.stringify(entry))
     })
     .then(function(entry) {

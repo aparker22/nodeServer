@@ -1,0 +1,20 @@
+.contact {
+    list-style: none;
+    background-color: lightblue;
+    width: 45%;
+    text-align: center;
+    display: inline-block;
+    margin: 10px;
+    padding: 10px;
+    outline: darkblue 2px solid;
+}
+
+h2 {
+    display: inline-block;
+    margin: 2px;
+}
+
+.contact-remove {
+    background-color: navy;
+    color: white;
+}
