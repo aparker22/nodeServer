@@ -29,31 +29,35 @@ let postContact = (request, response) => {
         contact.id = ++contactID;
         contacts.push(contact);
         response.end('Entry Added');
+        return contact;
     });
 };
 
 let getSingleContact = (request, response) => {
     let urlID = findContactID(request.url);
+    let match;
     contacts.forEach((entry) => {
         if (entry.id === urlID) {
-            response.end(JSON.stringify(entry));
-        } else {
-            response.end('Unable to find entry');
-        };
+            match = JSON.stringify(entry);  
+        } 
     });
+    if (match) {
+        response.end(JSON.stringify(match));
+    } else {
+        routeNotFound(request, response);
+    }
 };
 
 let updateContact = (request, response) => {
     let urlID = findContactID(request.url);
     getContactListFromServer(request, (body) => {
         let updateContact = JSON.parse(body);
+        updateContact.id = ++contactID;
         contacts.forEach((entry, i) => {
             if (entry.id === urlID) {
                 contacts.splice(i, 1, updateContact);
-                response.end('Entry Updated');
-            } else {
-                response.end('Unable to find entry');
-            };
+                return response.end('Entry Updated');
+            } 
         });
     });
 };
@@ -63,56 +67,39 @@ let deleteContact = (request, response) => {
     contacts.forEach((entry, i) => {
         if (entry.id === urlID) {
             contacts.splice(i, 1)
-            response.end('Entry Deleted');
-        } else {
-            response.end('Unable to find entry');
-        };
+            return response.end('Entry Deleted');
+        } 
     });
 };
 
 let findContactID = (url) => {
-    return parseInt(url.split('/contacts/')[1], 10);
+    var id = (routes[0].path).exec(url)[1];
+    return parseInt(id, 10)
 }
 
-
-
-let findIfPathIncludesID = (url) => {
-    let id = findContactID(url);
-    let path = '';
-    if (id) {
-        path = `/contacts/`;
-    } else {
-        path = '/contacts';
-    };
-    return path;
-};
-
-let findPathIsValid = (url) => {
-    if (url.includes('/contacts')) {
-        var path = findIfPathIncludesID(url);
-    } else {
-        var path = url;
-    };
-    return path;  
-};
-
 let findRoute = (method, url) => {
-    let foundRoute;
-    let path = findPathIsValid(url);
+    var foundRoute;
     routes.forEach((route) => {
-        if (route.method === method && route.path === path) {
-            foundRoute = route;            
-        };
-    });
+        if (route.method === method) {
+            if (route.path.exec(url)) {
+                foundRoute = route;
+            }
+        }
+    })        
     return foundRoute;
 };
 
+let routeNotFound = (request, response) => {
+    response.statusCode = 404;
+    response.end('Unable to communicate');
+}
+
 let routes = [
-    { method: 'GET', path: '/contacts/', handler: getSingleContact},   
-    { method: 'PUT', path: '/contacts/', handler: updateContact},
-    { method: 'DELETE', path:'/contacts/', handler: deleteContact},
-    { method: 'GET', path: '/contacts', handler: getContacts},
-    { method: 'POST', path: '/contacts', handler: postContact}
+    { method: 'GET', path: /^\/contacts\/([0-9]+)\/?/, handler: getSingleContact},   
+    { method: 'PUT', path: /^\/contacts\/([0-9]+)\/?/, handler: updateContact},
+    { method: 'DELETE', path: /^\/contacts\/([0-9]+)\/?/, handler: deleteContact},
+    { method: 'GET', path: /^\/contacts\/?$/, handler: getContacts},
+    { method: 'POST', path: /^\/contacts\/?$/, handler: postContact}
 ];
 
 let server = http.createServer( (request, response) => {
@@ -120,8 +107,7 @@ let server = http.createServer( (request, response) => {
     if (route) {
         route.handler(request, response);
     } else {
-        response.statusCode = 404;
-        response.end('Unable to communicate');
+        routeNotFound(request, response);
     };
 });
 
