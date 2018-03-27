@@ -1,14 +1,10 @@
-let http = require('http');
-let fs = require('fs');
+const http = require('http');
+const fs = require('fs');
+const pg = require('pg-promise')();
 
-let contacts = [
-    {"first":"Ashley","last":"Parker","number":"123-456-7890","id":1},
-    {"first":"Ava","last":"Parker","number":"123-456-7890","id":2},
-    {"first":"Brandon","last":"Parker","number":"123-456-7890","id":3},
-    {"first":"Calli","last":"Parker","number":"123-456-7890","id":4}
-];
+const dbconfig = 'postgres://Ashley@localhost/phonebook';
+const db = pg(dbconfig);
 
-let contactID = contacts.length;
 
 let getContactListFromServer = (request, callback) => {
     let body = ''
@@ -21,55 +17,55 @@ let getContactListFromServer = (request, callback) => {
 };
 
 let getContacts = (request, response) => {
-    response.end(JSON.stringify(contacts)); 
+    db.query('SELECT * FROM contacts')
+    .then( (results) => {
+        response.end(JSON.stringify(results))
+    })
+    .then ( () => {
+        (pg.end);
+    });     
 };
 
 let postContact = (request, response) => {
     getContactListFromServer(request, (body) => {
         let contact = JSON.parse(body);
-        contact.id = ++contactID;
-        contacts.push(contact);
-        response.end('Entry Added');
-        return contact;
-    });
+        db.query(`INSERT INTO contacts (first, last, number) VALUES ('${contact.first}', '${contact.last}', '${contact.number}');`)
+        .then( () => {
+            response.end('Entry Added');
+            (pg.end)
+        })
+    }) 
 };
 
 let getSingleContact = (request, response) => {
     let urlID = findContactID(request.url);
-    let match;
-    contacts.forEach((entry) => {
-        if (entry.id === urlID) {
-            match = JSON.stringify(entry);  
-        } 
-    });
-    if (match) {
-        response.end(JSON.stringify(match));
-    } else {
-        routeNotFound(request, response);
-    }
+    
+    db.query(`SELECT * FROM contacts WHERE id = '${urlID}';`)
+    .then( (contact) => {
+        response.end(JSON.stringify(contact))
+    })
 };
 
 let updateContact = (request, response) => {
     let urlID = findContactID(request.url);
     getContactListFromServer(request, (body) => {
-        let updateContact = JSON.parse(body);
-        updateContact.id = ++contactID;
-        contacts.forEach((entry, i) => {
-            if (entry.id === urlID) {
-                contacts.splice(i, 1, updateContact);
-                return response.end('Entry Updated');
-            } 
+        let contact = JSON.parse(body);
+        console.log(contact);
+        
+        db.query(`UPDATE contacts SET first = '${contact.first}', last = '${contact.last}', number = '${contact.number}' WHERE id = '${urlID}';`)
+        .then( () => {
+            response.end('Entry Updated');
+            (pg.end);
         });
     });
 };
 
 let deleteContact = (request, response) => {
     let urlID = findContactID(request.url);
-    contacts.forEach((entry, i) => {
-        if (entry.id === urlID) {
-            contacts.splice(i, 1)
-            return response.end('Entry Deleted');
-        } 
+    db.query(`DELETE FROM contacts WHERE id = '${urlID}';`)
+    .then( () => {
+        response.end('Entry Deleted');
+        (pg.end);
     });
 };
 
